@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Un jardín para ti</title>
+<style>
+  :root{
+    --sky-top:#fff6d8;
+    --sky-bottom:#ffe082;
+    --grass-dark:#7a9c3f;
+    --grass-light:#96b84f;
+    --petal:#ffd23f;
+    --petal-dark:#f4b400;
+    --center:#8a5a1f;
+    --card-bg:#fffaf0;
+    --ink:#4a3b1a;
+    --accent:#e0a800;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; min-height:100%;
+    font-family: 'Georgia', 'Iowan Old Style', serif;
+    overflow-x:hidden;
+    background: linear-gradient(to bottom, var(--sky-top) 0%, var(--sky-bottom) 45%, var(--grass-light) 45%, var(--grass-dark) 100%);
+  }
+  .sun{
+    position:absolute; top:6%; right:8%;
+    width:90px; height:90px; border-radius:50%;
+    background: radial-gradient(circle, #fff4c2 0%, #ffd54f 60%, #ffca28 100%);
+    box-shadow: 0 0 60px 20px rgba(255,213,79,0.5);
+  }
+  header{
+    text-align:center;
+    padding: 44px 20px 6px;
+    position:relative;
+    z-index:2;
+  }
+  h1{
+    font-size: clamp(1.6rem, 4vw, 2.6rem);
+    color:var(--ink);
+    margin:0;
+    letter-spacing:0.5px;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+  }
+  p.sub{
+    color:#6b5a30;
+    margin:10px auto 0;
+    max-width:480px;
+    font-size:1.05rem;
+  }
+  .garden{
+    position:relative;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:flex-end;
+    justify-content:center;
+    gap: 0 6px;
+    max-width:1000px;
+    margin: 30px auto 0;
+    padding: 0 12px 20px;
+  }
+  .flower{
+    width:64px;
+    cursor:pointer;
+    transform-origin:bottom center;
+    animation: sway 4s ease-in-out infinite;
+    transition: transform 0.2s ease;
+  }
+  .flower:hover{ transform: scale(1.1) !important; }
+  .flower svg{ width:100%; height:auto; overflow:visible; display:block; }
+  .stem{ stroke:#5b7a2c; stroke-width:5; }
+  .leaf{ fill:#6f9436; }
+  .petal{ fill:var(--petal); }
+  .petal-shadow{ fill:var(--petal-dark); }
+  .flower-center{ fill:var(--center); }
+  .flower.is-link .flower-center{ fill:#3f6b8a; }
+  .flower.is-empty svg{ opacity:0.55; }
+
+  @keyframes sway{
+    0%,100%{ transform: rotate(-3deg); }
+    50%{ transform: rotate(3deg); }
+  }
+
+  footer{
+    text-align:center;
+    padding: 18px 12px 30px;
+    color:#6b5a30;
+    font-size:0.85rem;
+    position:relative;
+    z-index:2;
+  }
+
+  /* Modal */
+  .overlay{
+    position:fixed; inset:0;
+    background: rgba(74,59,26,0.5);
+    display:flex; align-items:center; justify-content:center;
+    padding:20px;
+    opacity:0; pointer-events:none;
+    transition: opacity 0.25s ease;
+    z-index:10;
+  }
+  .overlay.show{ opacity:1; pointer-events:auto; }
+  .card{
+    background: var(--card-bg);
+    border-radius: 18px;
+    padding: 22px 22px 28px;
+    max-width: 380px;
+    width:100%;
+    text-align:center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    transform: translateY(14px) scale(0.96);
+    transition: transform 0.25s ease;
+    position:relative;
+  }
+  .overlay.show .card{ transform: translateY(0) scale(1); }
+  .card .icon{ font-size:1.8rem; margin-bottom:6px; display:block; }
+  .polaroid{
+    background:#fff;
+    padding:10px 10px 0;
+    border-radius:6px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+    margin: 4px auto 16px;
+    max-width:280px;
+    transform: rotate(-2deg);
+  }
+  .polaroid img{
+    width:100%;
+    display:block;
+    border-radius:3px;
+    max-height:280px;
+    object-fit:cover;
+  }
+  .polaroid .tape{
+    height:26px;
+  }
+  .card p.nota{
+    font-size:1.1rem;
+    line-height:1.5;
+    color:var(--ink);
+    margin: 0 0 20px;
+  }
+  .card a.link-btn{
+    display:inline-block;
+    background:#3f6b8a;
+    color:#fff;
+    text-decoration:none;
+    padding:10px 20px;
+    border-radius:999px;
+    font-size:0.95rem;
+    margin-bottom:18px;
+  }
+  .card a.link-btn:hover{ background:#2f5570; }
+  .card button.close{
+    background: var(--accent);
+    border:none;
+    color:#fff;
+    padding:10px 22px;
+    border-radius: 999px;
+    font-size:0.95rem;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .card button.close:hover{ background:#c98f00; }
+
+  .sound-btn{
+    position:fixed; top:16px; right:16px;
+    z-index:5;
+    background: rgba(255,255,255,0.85);
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 999px;
+    padding: 10px 16px;
+    font-size:0.9rem;
+    cursor:pointer;
+    color:var(--ink);
+    font-family:inherit;
+    box-shadow:0 2px 10px rgba(0,0,0,0.1);
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .flower{ animation:none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="sun"></div>
+<button class="sound-btn" id="soundBtn">🔈 Música</button>
+
+<header>
+  <h1>Un jardín solo para ti</h1>
+  <p class="sub">Cada flor guarda una foto o algo que quiero decirte. Tócalas una por una 🌼</p>
+</header>
+
+<div class="garden" id="garden"></div>
+
+<footer>hecho con cariño para ti</footer>
+
+<div class="overlay" id="overlay">
+  <div class="card" id="card">
+    <span class="icon" id="cardIcon">🌼</span>
+    <div id="cardMedia"></div>
+    <p class="nota" id="cardMsg"></p>
+    <div id="cardLink"></div>
+    <button class="close" id="closeBtn">cerrar</button>
+  </div>
+</div>
+
+<!--
+  MÚSICA:
+  No puedo incluir la canción real (derechos de autor), pero deja el archivo
+  aquí mismo, en la misma carpeta que este index.html, con este nombre exacto:
+    wonderwall.mp3
+  Puede ser tu propia copia legal de "Wonderwall" de Oasis, o cualquier otra
+  canción; el reproductor de abajo usa ese nombre de archivo.
+-->
+<audio id="bgm" loop>
+  <source src="wonderwall.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+// ------------------------------------------------------------------
+// EDITA AQUÍ cada flor: su nota, y si es foto o enlace.
+// - type: "foto"  -> usa src (ruta a la imagen) y nota (texto)
+// - type: "link"  -> usa nota (texto) y url (a dónde lleva el enlace)
+// El orden de este arreglo es el orden en que aparecen las flores.
+// ------------------------------------------------------------------
+const flores = [
+  { type:"foto", src:"assets/foto1.jpg",  nota:"No tienes idea de lo fan que soy de tus besos" },
+  { type:"foto", src:"assets/foto2.jpg",  nota:"Me haces muy feliz" },
+  { type:"foto", src:"assets/foto3.jpg",  nota:"de nuestras primeras citas, ame estar en la feria contigo, ahora toca sixflags, te va gustar" },
+  { type:"foto", src:"assets/foto4.jpg",  nota:"Te veias increible, lo unico que no me gusto de ese dia fue la pelea" },
+  { type:"foto", src:"assets/foto5.jpg",  nota:"Te amo pedacito de mi vida" },
+  { type:"foto", src:"assets/foto6.jpg",  nota:"Aun que me canse mucho ha sido de mis citas favoritas" },
+  { type:"foto", src:"assets/foto7.jpg",  nota:"Aun que siempre pierdas" },
+  { type:"foto", src:"assets/foto8.jpg",  nota:"Nuestra primer hija" },
+  { type:"foto", src:"assets/foto9.jpg",  nota:"Y te amo mas que nada en el mundo" },
+  { type:"foto", src:"assets/foto10.jpg", nota:"Eres mi persona favorita" },
+  { type:"foto", src:"assets/foto11.jpg", nota:"jajaja que rico sushi nos comimos ese dia" },
+  { type:"foto", src:"assets/foto12.jpg", nota:"Amo tus ojos, quisiera verlos todos los dias, y una niña con tus preciosos ojos" },
+  { type:"foto", src:"assets/foto13.jpg", nota:"No sabes como amo el sabor de tu boca" },
+
+  // Flor con enlace en vez de foto: cambia "url" y "nota" por lo que quieras.
+ { type:"nota", nota:"Tengo algo más para ti, Abre la siguiente flor" },
+
+  // Flor para una foto que aún no tienes: solo agrega el archivo
+  // "assets/foto14.jpg" en esa carpeta y aparecerá sola, con esta nota.
+  { type:"foto", src:"assets/foto14.png", nota:"Prometimos que nos volveriamos a ver pronto" }
+];
+
+const iconos = ["🌼","💛","🌻","✨","🐝","☀️","🦋","💫"];
+
+const garden = document.getElementById('garden');
+const overlay = document.getElementById('overlay');
+const card = document.getElementById('card');
+const cardMsg = document.getElementById('cardMsg');
+const cardIcon = document.getElementById('cardIcon');
+const cardMedia = document.getElementById('cardMedia');
+const cardLink = document.getElementById('cardLink');
+const closeBtn = document.getElementById('closeBtn');
+
+function flowerSVG(){
+  const petalRot = [0,45,90,135,180,225,270,315];
+  let petals = petalRot.map(r => `
+    <ellipse class="petal" cx="35" cy="16" rx="11" ry="19" transform="rotate(${r} 35 35)"/>
+  `).join('');
+  return `
+  <svg viewBox="0 0 70 130">
+    <line class="stem" x1="35" y1="55" x2="35" y2="128"/>
+    <path class="leaf" d="M35,95 C15,90 8,105 20,115 C28,110 33,102 35,95 Z"/>
+    <path class="leaf" d="M35,105 C55,100 62,115 50,125 C42,120 37,112 35,105 Z"/>
+    <g>${petals}</g>
+    <circle class="flower-center" cx="35" cy="35" r="13"/>
+  </svg>`;
+}
+
+flores.forEach((f, i) => {
+  const div = document.createElement('div');
+  div.className = 'flower' + (f.type === 'link' ? ' is-link' : '');
+  const sizes = [58,66,62,70,60,68,64,72,59,67,63,69,61,65,71];
+  div.style.width = sizes[i % sizes.length] + 'px';
+  div.style.animationDelay = ((i * 0.37) % 3) + 's';
+  div.style.transform = `rotate(${(i % 2 === 0 ? -1 : 1) * (2 + (i % 3))}deg)`;
+  div.innerHTML = flowerSVG();
+  div.addEventListener('click', () => openCard(i));
+  garden.appendChild(div);
+});
+
+function openCard(i){
+  const f = flores[i];
+  cardIcon.textContent = iconos[i % iconos.length];
+  cardMsg.textContent = f.nota;
+  cardMedia.innerHTML = '';
+  cardLink.innerHTML = '';
+
+  if (f.type === 'foto') {
+    const wrap = document.createElement('div');
+    wrap.className = 'polaroid';
+    const img = document.createElement('img');
+    img.src = f.src;
+    img.alt = '';
+    img.onerror = function(){
+      wrap.innerHTML = '<div style="padding:36px 10px;color:#a08a4a;font-size:0.9rem;">agrega aquí "' + f.src + '"</div>';
+    };
+    wrap.appendChild(img);
+    const tape = document.createElement('div');
+    tape.className = 'tape';
+    wrap.appendChild(tape);
+    cardMedia.appendChild(wrap);
+  } else if (f.type === 'link') {
+    const a = document.createElement('a');
+    a.className = 'link-btn';
+    a.href = f.url;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.textContent = 'abrir enlace';
+    cardLink.appendChild(a);
+  }
+
+  overlay.classList.add('show');
+}
+closeBtn.addEventListener('click', () => overlay.classList.remove('show'));
+overlay.addEventListener('click', (e) => { if(e.target === overlay) overlay.classList.remove('show'); });
+
+// Música de fondo
+const bgm = document.getElementById('bgm');
+const soundBtn = document.getElementById('soundBtn');
+let playing = false;
+
+function toggleSound(){
+  if(playing){
+    bgm.pause();
+    soundBtn.textContent = '🔈 Música';
+  } else {
+    bgm.play().catch(()=>{});
+    soundBtn.textContent = '🔊 Pausar';
+  }
+  playing = !playing;
+}
+soundBtn.addEventListener('click', toggleSound);
+</script>
+
+</body>
+</html>
